@@ -363,8 +363,6 @@ class Analysis(object):
         outputfile.close()
         print("all Finished")
 
-
-
 if __name__ == "__main__":
     action_file_name = "recom_feed_action20170621.txt"
     expo_file_name = "recom_feed_expo20170621.txt"
