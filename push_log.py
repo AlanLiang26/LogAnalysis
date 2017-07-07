@@ -56,7 +56,6 @@ class PushExpo(object):
             self.uid = loginfo[2]
         else:
             self.uid = "NotLoginIn"
-
         self.app = loginfo[3]
         self.profile = loginfo[4]
         try:
@@ -115,7 +114,10 @@ class PushData(object):
         for info in action_file.readlines():
             c=PushClick(info)
             if len(c.uid)>1:
-                outputfile.write(c.sid+','+c.uid+','+c.app+','+c.profile+','+str(c.action_time)+','+c.network+','+c.wid+','+c.v_id+','+c.algorithm+','+str(c.push_time)+','+c.temp+',\n')
+                if "NoName" in c.v_id or "general_video" not in c.app:
+                    continue
+                else:
+                    outputfile.write(c.sid+','+c.uid+','+c.app+','+c.profile+','+str(c.action_time)+','+c.network+','+c.wid+','+c.v_id+','+c.algorithm+','+str(c.push_time)+','+c.temp+',\n')
         outputfile.close()
         action_file.close()
 
@@ -125,10 +127,20 @@ class PushData(object):
             return
         outputfile = open("ProPush"+self.expo_file_name[6:],'w')
         expo_file = open(self.expo_file_name,'r')
+        elseapp = {}
         for info in expo_file.readlines():
             c=PushExpo(info)
             if c.good == True:
-                outputfile.write(c.sid + ',' + c.uid + ',' + c.app + ',' + c.profile + ',' + str(c.expo_time) + ',' + c.network + ',' + c.wid + ',' + c.v_id + ',' + c.algorithm + ',' + str(c.push_time) +','+c.temp+ ',\n')
+                if "NoName" in c.v_id:
+                    continue
+                if  "general_video" not in c.app:
+                    if elseapp.has_key(c.app):
+                        continue
+                    else:
+                        elseapp[c.app]=1
+                        print(c.app)
+                else:
+                    outputfile.write(c.sid + ',' + c.uid + ',' + c.app + ',' + c.profile + ',' + str(c.expo_time) + ',' + c.network + ',' + c.wid + ',' + c.v_id + ',' + c.algorithm + ',' + str(c.push_time) +','+c.temp+ ',\n')
         outputfile.close()
         expo_file.close()
 
