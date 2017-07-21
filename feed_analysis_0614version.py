@@ -1,10 +1,11 @@
 from feed_log_file import Click,Expo,FeedData
-import time
+import datetime
 #import numpy as np
 #import matplotlib.pyplot as plt
 import gc
 import os
-
+import smtplib
+from email.mime.text import MIMEText
 
 ALGORITHM_ANALYSIS_TYPE  = 1
 HOUR_ANALYSIS_TYPE  = 2
@@ -13,6 +14,22 @@ VERSION_ANALYSIS_TYPE = 4
 ITEM_ANALYSIS_TYPE = 5
 TOPIC_ANALYSIS_TYPT =6
 FEED_ALGORITHMS = ["cf","tb","igqbp","other","ldacf"]
+mailto_list=['liangyalun@waquer.com']
+content=""
+def send_mail(to_list,sub,content):
+    me = "alanwaqu@163.com"
+    msg = MIMEText(content,_subtype='plain',_charset='gb2312')
+    msg['Subject'] = sub
+    msg['From'] = me
+    msg['To'] = ";".join(to_list)
+    try:
+        server = smtplib.SMTP()
+        server.connect("smtp.163.com")
+        server.login("alanwaqu@163.com","waqushiping666")
+        server.sendmail(me,to_list,msg.as_string())
+        server.close()
+    except Exception,e:
+        print str(e)
 class USER(object):
     def __init__(self,uid,wid):
         self.uid = uid
@@ -58,16 +75,19 @@ class Analysis(object):
         self.action_file_name = action_file_name
         self.expo_file_name = expo_file_name
         self.header_file_name = header_file_name
+        self.content=""
         print('Read file finish')
 
     def analysis(self):
         if ALGORITHM_ANALYSIS_TYPE in self.type:
+            self.content+=("Algorithm_analysis\n")
             self.algorithm_analysis()
         if VERSION_ANALYSIS_TYPE in self.type:
             self.version_analysis()
         if ITEM_ANALYSIS_TYPE in self.type:
             self.item_analysis()
         if TOPIC_ANALYSIS_TYPT in self.type:
+            #self.content += ("Topic_analysis\n")
             self.topic_analysis()
 
     def MergeSort(self,lists):
@@ -93,14 +113,12 @@ class Analysis(object):
         return result
 
     def algorithm_analysis(self):
-
         total_play_time = {"cf":0.0,"tb":0.0,"igqbp":0.0,"other":0.0,"ldacf":0.0}
         total_click_count = {"cf":0.0,"tb":0.0,"igqbp":0.0,"other":0.0,"ldacf":0.0}
         total_expo_count = {"cf":0.0,"tb":0.0,"igqbp":0.0,"other":0.0,"ldacf":0.0}
         all_total_play_time = 0.0
         all_total_click_count = 0.0
         all_total_expo_count = 0.0
-
         # PGC
         #pgcwidlist={}
         #tempfile = open("pgcvideo_widlist.txt",'r')
@@ -130,8 +148,10 @@ class Analysis(object):
             all_total_click_count += total_click_count[algo]
             all_total_expo_count += total_expo_count[algo]
 
-        feed_file = open('analysis_' + action_file_name[10:], 'w')
-        feed_file.write(self.action_file_name + '\n')
+        feed_file = open('1FeedRult', 'a')
+        now = datetime.datetime.now()
+        todaydate = now.strftime("%Y%m%d")
+        feed_file.write(str(todaydate) + '\n')
         for algo in FEED_ALGORITHMS:
             MeanPlayTime = total_play_time[algo] / (total_click_count[algo] + 1.0)
             CTR = total_click_count[algo] / (total_expo_count[algo] + 1.0)
@@ -144,6 +164,7 @@ class Analysis(object):
             CTR
             ))
             feed_file.write(algo + "," + str(total_play_time[algo]) + "," + str(total_click_count[algo]) + "," + str(total_expo_count[algo]) + "," + str(MeanPlayTime) + "," + str(CTR) + "\n")
+            self.content+=(algo + " , " + str(total_play_time[algo]) + " , " + str(total_click_count[algo]) + " , " + str(total_expo_count[algo]) + " , " + str(MeanPlayTime) + " , " + str(CTR) + "\n")
         MeanPlayTime = all_total_play_time / (all_total_click_count + 1.0)
         CTR = all_total_click_count / (all_total_expo_count + 1.0)
         print('Algo: {0} PlayTime: {1:.1f} ClickCount: {2:.1f} TotalExpoCount: {3:.1f} MeanPlayTime: {4:.3f} CTR: {5:.3f}'.format(
@@ -155,6 +176,7 @@ class Analysis(object):
         CTR
         ))
         feed_file.write("all," + str(all_total_play_time) + "," + str(all_total_click_count) + "," + str(all_total_expo_count) + "," +  str(MeanPlayTime) + "," + str(CTR) + '\n')
+        self.content+=("all , " + str(all_total_play_time) + " , " + str(all_total_click_count) + " , " + str(all_total_expo_count) + " , " +  str(MeanPlayTime) + " , " + str(CTR) + '\n')
         feed_file.close()
 
     def version_analysis(self):
@@ -236,7 +258,6 @@ class Analysis(object):
                 itemsfile[log[2][0]].write(log[2] + ',' +log[1] + ',' + '\n')
         for fn in itemfirst:
             itemsfile[fn].close()
-
             # counttest += 1                                                      #for test
             # if counttest >1000:                                                #for test
             #      break                                                         #for test
@@ -357,20 +378,35 @@ class Analysis(object):
                     ctr = float(click_count[key])/float(expo_count[key])
                     if topicname.has_key(key):
                         outputfile.write(algo+','+key+','+str(play_time[key])+','+str(click_count[key])+','+str(expo_count[key])+','+str(meanpt)+','+str(ctr)+','+topicname[key])
+                        #self.content+=(algo+','+key+','+str(play_time[key])+','+str(click_count[key])+','+str(expo_count[key])+','+str(meanpt)+','+str(ctr)+','+topicname[key])
                     else:
                         outputfile.write(algo+','+key+','+str(play_time[key])+','+str(click_count[key])+','+str(expo_count[key])+','+str(meanpt) + ',' + str(ctr) + ',NoName,\n')
+                        #self.content+=(algo+','+key+','+str(play_time[key])+','+str(click_count[key])+','+str(expo_count[key])+','+str(meanpt) + ',' + str(ctr) + ',NoName,\n')
             print(algo+"   finished")
         outputfile.close()
         print("all Finished")
 
 if __name__ == "__main__":
-    action_file_name = "recom_feed_action20170621.txt"
-    expo_file_name = "recom_feed_expo20170621.txt"
-    header_file_name = "recom_feed_header.txt"
-    #alg = Analysis(action_file_name, expo_file_name, header_file_name, [TOPIC_ANALYSIS_TYPT])
-    alg = Analysis(action_file_name, expo_file_name,header_file_name, [ALGORITHM_ANALYSIS_TYPE])
+    now=datetime.datetime.now()
+    todaydate=now.strftime("%Y%m%d")
+    content += str(todaydate) + "\n"
+    action_file_name = "recom_feed_action"+todaydate+".txt"
+    expo_file_name = "recom_feed_expo"+todaydate+".txt"
+    header_file_name = "recom_feed_header"+todaydate+".txt"
+    alg = Analysis(action_file_name, expo_file_name, header_file_name, [ALGORITHM_ANALYSIS_TYPE])
+    #alg = Analysis(action_file_name, expo_file_name,header_file_name, [ALGORITHM_ANALYSIS_TYPE])
     #alg = Analysis(action_file_name, expo_file_name,header_file_name, [VERSION_ANALYSIS_TYPE])
     #alg = Analysis(action_file_name, expo_file_name,header_file_name, [ITEM_ANALYSIS_TYPE])
     alg.analysis()
-    #os.remove("ClickPro" + action_file_name[10:])
-    #os.remove("ExpoPro" + expo_file_name[10:])
+    if os.path.isfile("ClickPro" + action_file_name[10:]):
+        os.remove("ClickPro" + action_file_name[10:])
+    if os.path.isfile("ExpoPro" + expo_file_name[10:]):
+        os.remove("ExpoPro" + expo_file_name[10:])
+    if os.path.isfile(action_file_name):
+        os.remove(action_file_name)
+    if os.path.isfile(expo_file_name):
+        os.remove(expo_file_name)
+    if os.path.isfile(header_file_name):
+        os.remove(header_file_name)
+    content += alg.content
+    send_mail(mailto_list, "FeedDetail" + todaydate, content)
