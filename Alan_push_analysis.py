@@ -5,6 +5,8 @@ from push_log import PushClick,PushExpo,PushData
 from datetime import datetime
 import datetime
 import os
+import smtplib
+from email.mime.text import MIMEText
 
 ALGORITHM_ANALYSIS_TYPE  = 1
 HOUR_ANALYSIS_TYPE  = 2
@@ -12,6 +14,23 @@ ALGORITHM_HOUR_ANALYSIS_TYPE  = 3
 CTR_ANALYSIS_TYPE =4
 NETWORK_ANALYSIS_TYPE = 5
 REPEAT_ANALYSIS_TYPE=6
+mailto_list=['liangyalun@waquer.com']
+content=""
+def send_mail(to_list,sub,content):
+    me = "alanwaqu@163.com"
+    msg = MIMEText(content,_subtype='plain',_charset='gb2312')
+    msg['Subject'] = sub
+    msg['From'] = me
+    msg['To'] = ";".join(to_list)
+    try:
+        server = smtplib.SMTP()
+        server.connect("smtp.163.com")
+        server.login("alanwaqu@163.com","waqushiping666")
+        server.sendmail(me,to_list,msg.as_string())
+        server.close()
+    except Exception,e:
+        print str(e)
+
 class Analysis(object):
     def __init__(self, action_file_name,expo_file_name,video_name_file,type):
         push_data = PushData(action_file_name,expo_file_name)
@@ -20,17 +39,20 @@ class Analysis(object):
         self.expo_file_name = expo_file_name
         self.video_name_file = video_name_file
         self.type = type
+        self.content=""
 
     def analysis(self):
         if ALGORITHM_ANALYSIS_TYPE in self.type:
             resultfile = open("PushResult.txt", 'a')
             resultfile.write("Algorithm  Analysis:" + '\n')
             resultfile.close()
+            self.content +=( "Algorithm  Analysis:" + '\n')
             self.algorithm_analysis()
         if HOUR_ANALYSIS_TYPE in self.type:
             resultfile = open("PushResult.txt", 'a')
             resultfile.write("Hour  Analysis:" + '\n')
             resultfile.close()
+            self.content += ("Hour  Analysis:" + '\n')
             self.time_analysis()
         if ALGORITHM_HOUR_ANALYSIS_TYPE in self.type:
             resultfile = open("PushResult.txt", 'a')
@@ -41,13 +63,15 @@ class Analysis(object):
             self.ctr_analysis()
         if NETWORK_ANALYSIS_TYPE in self.type:
             resultfile = open("PushResult.txt", 'a')
-            resultfile.write("Algorithm  Analysis:" + '\n')
+            resultfile.write("Network Analysis:" + '\n')
             resultfile.close()
+            self.content += ("Network Analysis:" + '\n')
             self.network_analysis()
         if REPEAT_ANALYSIS_TYPE in self.type:
             resultfile = open("PushResult.txt", 'a')
-            resultfile.write("Repeat  Analysis:" + '\n')
+            resultfile.write("Repeat Analysis:" + '\n')
             resultfile.close()
+            self.content += ("Repeat Analysis:" + '\n')
             self.repeat_analysis()
 
     def algorithm_analysis(self):
@@ -89,6 +113,7 @@ class Analysis(object):
                         CTR
                         ))
             outputfile.write(algo+','+str(total_click_count)+','+str(total_expo_count)+','+str(CTR)+',\n')
+            self.content+=(algo+','+str(total_click_count)+','+str(total_expo_count)+','+str(CTR)+',\n')
         CTR=all_total_click_count/(all_total_expo_count + 1.0)
         print('Algo: {0}  ClickCount: {1:>4} TotalExpoCount: {2:>3}  CTR: {3:.3f}'.format(
                     "all",
@@ -97,13 +122,16 @@ class Analysis(object):
                     CTR
                     ))
         outputfile.write( 'all,' + str(all_total_click_count) + ',' + str(all_total_expo_count) + ',' + str(CTR) +',\n')
+        self.content +=('all,' + str(all_total_click_count) + ',' + str(all_total_expo_count) + ',' + str(CTR) +',\n')
         for key in tempexpo:
             if tempclick.has_key(key):
                 print(key+',expo,'+str(tempexpo[key])+',click,'+str(tempclick[key]))
                 outputfile.write(key + ',' + str(tempexpo[key]) + ',' + str(tempclick[key])  + '\n')
+                self.content +=(key + ',' + str(tempexpo[key]) + ',' + str(tempclick[key])  + '\n')
             else:
                 print(key + ',expo,' + str(tempexpo[key]) + ',click,0' )
                 outputfile.write(key + ',' + str(tempexpo[key]) + ',0\n')
+                self.content += (key + ',' + str(tempexpo[key]) + ',0\n')
         outputfile.close()
 
     def time_algorithm_analysis(self):
@@ -194,6 +222,7 @@ class Analysis(object):
                         CTR
                         ))
             outputfile.write(str(hour) + ',' + str(total_click_count) + ',' + str(total_expo_count) + ',' + str(CTR) + ',\n')
+            self.content+=(str(hour) + ',' + str(total_click_count) + ',' + str(total_expo_count) + ',' + str(CTR) + ',\n')
         CTR = all_total_click_count / (all_total_expo_count + 1.0)
         print('Hour: {0}  ClickCount: {1:>4} TotalExpoCount: {2:>3}  CTR: {3:.3f}'.format(
                     "all",
@@ -202,6 +231,7 @@ class Analysis(object):
                     CTR
                     ))
         outputfile.write('all,' + str(all_total_click_count) + ',' + str(all_total_expo_count) + ',' + str(CTR) + ',\n')
+        self.content += ('all,' + str(all_total_click_count) + ',' + str(all_total_expo_count) + ',' + str(CTR) + ',\n')
         outputfile.close()
 
     def ctr_analysis(self):
@@ -287,6 +317,7 @@ class Analysis(object):
                 CTR
                 ))
             resultfile.write(key+" "+str(expo_count[key][0])+" " + str(expo_count[key][1])+" "+str(CTR)+'\n')
+            self.content+=(key+" "+str(expo_count[key][0])+" " + str(expo_count[key][1])+" "+str(CTR)+'\n')
         CTR = total_click_count / (total_expo_count + 1.0)
         print('Network: {0}  ClickCount: {1:>4} TotalExpoCount: {2:>3}  CTR: {3:.3f}'.format(
             "all",
@@ -295,6 +326,7 @@ class Analysis(object):
             CTR
         ))
         resultfile.write("all " + str(total_click_count) + " " + str(total_expo_count) + " " + str(CTR)+'\n')
+        self.content+=("all " + str(total_click_count) + " " + str(total_expo_count) + " " + str(CTR)+'\n')
         resultfile.close()
 
     def repeat_analysis(self):
@@ -330,6 +362,7 @@ class Analysis(object):
         print('User,'+str(expouser)+' repeatuser,'+str(repeatuser) +'  percent,'+str(repeatuser/expouser))
         resultfile = open("PushResult.txt", 'a')
         resultfile.write('User,'+str(expouser)+' repeatuser,'+str(repeatuser) +'  percent,'+str(repeatuser/expouser) + '\n')
+        self.content+=('User,'+str(expouser)+' repeatuser,'+str(repeatuser) +'  percent,'+str(repeatuser/expouser) + '\n')
         resultfile.close()
         outputfile.close()
         expofile.close()
@@ -337,12 +370,13 @@ class Analysis(object):
 if __name__ == "__main__":
     now = datetime.datetime.now()
     todaydate = now.strftime("%Y%m%d")
+    content+= str(todaydate) + "\n"
     action_file_name = "push_action"+todaydate+".txt"
     expo_file_name = "push_expo"+todaydate+".txt"
     video_name_file = "video_name"+todaydate+".txt"
     #alg = Analysis(action_file_name, expo_file_name,video_name_file,[ALGORITHM_ANALYSIS_TYPE])
     resultfile=open("PushResult.txt",'a')
-    resultfile.write(str(now)+'\n')
+    resultfile.write(str(todaydate)+'\n')
     resultfile.close()
     alg  = Analysis(action_file_name,expo_file_name,video_name_file,[ALGORITHM_ANALYSIS_TYPE , HOUR_ANALYSIS_TYPE ,NETWORK_ANALYSIS_TYPE,REPEAT_ANALYSIS_TYPE, CTR_ANALYSIS_TYPE])
     #alg  = Analysis(action_file_name,expo_file_name,video_name_file,[ALGORITHM_ANALYSIS_TYPE , [ALGORITHM_HOUR_ANALYSIS_TYPE])
@@ -355,3 +389,5 @@ if __name__ == "__main__":
         os.remove(expo_file_name)
     if os.path.isfile(video_name_file):
         os.remove(video_name_file)
+    content += alg.content
+    send_mail(mailto_list ,"PushDetail"+todaydate , content)
