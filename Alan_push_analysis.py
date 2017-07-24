@@ -113,7 +113,7 @@ class Analysis(object):
                         CTR
                         ))
             outputfile.write(algo+','+str(total_click_count)+','+str(total_expo_count)+','+str(CTR)+',\n')
-            self.content+=(algo+','+str(total_click_count)+','+str(total_expo_count)+','+str(CTR)+',\n')
+            self.content+=(algo+'  ,  '+str(total_click_count)+'  ,  '+str(total_expo_count)+'  ,  '+(str(CTR))[:6]+',\n')
         CTR=all_total_click_count/(all_total_expo_count + 1.0)
         print('Algo: {0}  ClickCount: {1:>4} TotalExpoCount: {2:>3}  CTR: {3:.3f}'.format(
                     "all",
@@ -122,16 +122,16 @@ class Analysis(object):
                     CTR
                     ))
         outputfile.write( 'all,' + str(all_total_click_count) + ',' + str(all_total_expo_count) + ',' + str(CTR) +',\n')
-        self.content +=('all,' + str(all_total_click_count) + ',' + str(all_total_expo_count) + ',' + str(CTR) +',\n')
+        self.content +=('all  ,' + str(all_total_click_count) + '  ,  ' + str(all_total_expo_count) + '  ,  ' + (str(CTR))[:6] +',\n')
         for key in tempexpo:
             if tempclick.has_key(key):
                 print(key+',expo,'+str(tempexpo[key])+',click,'+str(tempclick[key]))
                 outputfile.write(key + ',' + str(tempexpo[key]) + ',' + str(tempclick[key])  + '\n')
-                self.content +=(key + ',' + str(tempexpo[key]) + ',' + str(tempclick[key])  + '\n')
+                self.content +=(key + '  ,  ' + str(tempexpo[key]) + '  ,  ' + (str(tempclick[key]))[:6]  + '\n')
             else:
                 print(key + ',expo,' + str(tempexpo[key]) + ',click,0' )
-                outputfile.write(key + ',' + str(tempexpo[key]) + ',0\n')
-                self.content += (key + ',' + str(tempexpo[key]) + ',0\n')
+                outputfile.write(key + '  ,  ' + str(tempexpo[key]) + '  ,  0\n')
+                self.content += (key + '  ,  ' + str(tempexpo[key]) + '  ,  0\n')
         outputfile.close()
 
     def time_algorithm_analysis(self):
@@ -222,7 +222,7 @@ class Analysis(object):
                         CTR
                         ))
             outputfile.write(str(hour) + ',' + str(total_click_count) + ',' + str(total_expo_count) + ',' + str(CTR) + ',\n')
-            self.content+=(str(hour) + ',' + str(total_click_count) + ',' + str(total_expo_count) + ',' + str(CTR) + ',\n')
+            self.content+=(str(hour) + '  ,  ' + str(total_click_count) + '  ,  ' + str(total_expo_count) + '  ,  ' + (str(CTR))[:6] + ',\n')
         CTR = all_total_click_count / (all_total_expo_count + 1.0)
         print('Hour: {0}  ClickCount: {1:>4} TotalExpoCount: {2:>3}  CTR: {3:.3f}'.format(
                     "all",
@@ -231,7 +231,7 @@ class Analysis(object):
                     CTR
                     ))
         outputfile.write('all,' + str(all_total_click_count) + ',' + str(all_total_expo_count) + ',' + str(CTR) + ',\n')
-        self.content += ('all,' + str(all_total_click_count) + ',' + str(all_total_expo_count) + ',' + str(CTR) + ',\n')
+        self.content += ('all  ,  ' + str(all_total_click_count) + '  ,  ' + str(all_total_expo_count) + '  ,  ' + (str(CTR))[:6] + ',\n')
         outputfile.close()
 
     def ctr_analysis(self):
@@ -317,7 +317,7 @@ class Analysis(object):
                 CTR
                 ))
             resultfile.write(key+" "+str(expo_count[key][0])+" " + str(expo_count[key][1])+" "+str(CTR)+'\n')
-            self.content+=(key+" "+str(expo_count[key][0])+" " + str(expo_count[key][1])+" "+str(CTR)+'\n')
+            self.content+=(key+"   "+str(expo_count[key][0])+"    " + str(expo_count[key][1])+"    "+ (str(CTR))[:6]+'\n')
         CTR = total_click_count / (total_expo_count + 1.0)
         print('Network: {0}  ClickCount: {1:>4} TotalExpoCount: {2:>3}  CTR: {3:.3f}'.format(
             "all",
@@ -326,7 +326,7 @@ class Analysis(object):
             CTR
         ))
         resultfile.write("all " + str(total_click_count) + " " + str(total_expo_count) + " " + str(CTR)+'\n')
-        self.content+=("all " + str(total_click_count) + " " + str(total_expo_count) + " " + str(CTR)+'\n')
+        self.content+=("all   " + str(total_click_count) + "    " + str(total_expo_count) + "    " + (str(CTR))[:6] +'\n')
         resultfile.close()
 
     def repeat_analysis(self):
